@@ -1,0 +1,16 @@
+# The three code repos are cloned into this workspace but versioned on their own.
+/hybrid/
+/ios/
+/android/
+
+# .claude/ and .agents/ ARE committed: kit playbooks, subagents and the vendored skills at pinned commits (ADR-0016).
+# Only Claude Code's personal and per-session files stay out.
+/.claude/settings.local.json
+/.claude/worktrees/
+
+# Scratch / CI output
+/.skills-cache/
+/e2e/results/
+/analysis/inventory/*.tmp
+.DS_Store
+node_modules/

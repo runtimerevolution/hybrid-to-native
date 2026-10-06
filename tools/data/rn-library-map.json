@@ -1,0 +1,1366 @@
+{
+  "version": 1,
+  "description": "React Native / Expo library -> native replacement lookup. Used by tools/rn-inventory.mjs and rendered into guidelines/09-rn-to-native-mapping.md (node tools/rn-inventory.mjs --print-map). 'match' is an exact package name or a prefix ending in '*'. risk: high = affects data, identity, money or store continuity.",
+  "entries": [
+    {
+      "match": "expo-router",
+      "category": "navigation",
+      "risk": "medium",
+      "ios": "NavigationStack(path:) + route enum; TabView",
+      "android": "Navigation 3 (or type-safe Navigation Compose)",
+      "notes": "File tree under app/ is the route table; +api routes are server-only"
+    },
+    {
+      "match": "@react-navigation/*",
+      "category": "navigation",
+      "risk": "medium",
+      "ios": "NavigationStack / TabView / sheets",
+      "android": "Navigation 3 / Navigation Compose; NavigationBar; ModalNavigationDrawer",
+      "notes": "The linking config is the deep-link table: copy it to contracts/deeplinks.md"
+    },
+    {
+      "match": "react-native-screens",
+      "category": "navigation",
+      "risk": "low",
+      "ios": "built in",
+      "android": "built in",
+      "notes": "Infrastructure only"
+    },
+    {
+      "match": "react-native-safe-area-context",
+      "category": "layout",
+      "risk": "low",
+      "ios": "SwiftUI safe areas (built in)",
+      "android": "WindowInsets + enableEdgeToEdge()",
+      "notes": ""
+    },
+    {
+      "match": "react-native-keyboard-controller",
+      "category": "layout",
+      "risk": "low",
+      "ios": "Built-in keyboard avoidance; scrollDismissesKeyboard",
+      "android": "imePadding() / WindowInsets.ime",
+      "notes": ""
+    },
+    {
+      "match": "react-native-keyboard-aware-scroll-view",
+      "category": "layout",
+      "risk": "low",
+      "ios": "Built-in keyboard avoidance",
+      "android": "imePadding()",
+      "notes": ""
+    },
+    {
+      "match": "@reduxjs/toolkit",
+      "category": "state",
+      "risk": "medium",
+      "ios": "@Observable view models + repositories",
+      "android": "ViewModel + StateFlow + repositories",
+      "notes": "Split the global store: server data -> repositories, UI state -> view models. RTK Query endpoints feed contracts/openapi"
+    },
+    {
+      "match": "redux",
+      "category": "state",
+      "risk": "medium",
+      "ios": "@Observable view models + repositories",
+      "android": "ViewModel + StateFlow + repositories",
+      "notes": "Reducers are a good source of business rules and test vectors"
+    },
+    {
+      "match": "react-redux",
+      "category": "state",
+      "risk": "low",
+      "ios": "n/a",
+      "android": "n/a",
+      "notes": ""
+    },
+    {
+      "match": "redux-persist",
+      "category": "storage",
+      "risk": "high",
+      "ios": "Read legacy blob in LegacyDataMigrator",
+      "android": "Read legacy blob in LegacyDataMigrator",
+      "notes": "Persisted JSON inside AsyncStorage/MMKV: list persisted slices in analysis/data-at-rest.md"
+    },
+    {
+      "match": "zustand",
+      "category": "state",
+      "risk": "medium",
+      "ios": "@Observable view models + repositories",
+      "android": "ViewModel + StateFlow + repositories",
+      "notes": "Check for persist() middleware: that is data at rest"
+    },
+    {
+      "match": "mobx",
+      "category": "state",
+      "risk": "medium",
+      "ios": "@Observable (closest mental model)",
+      "android": "StateFlow / Compose state",
+      "notes": ""
+    },
+    {
+      "match": "mobx-state-tree",
+      "category": "state",
+      "risk": "medium",
+      "ios": "@Observable + value models",
+      "android": "StateFlow + data classes",
+      "notes": "Snapshots may be persisted: check storage"
+    },
+    {
+      "match": "jotai",
+      "category": "state",
+      "risk": "low",
+      "ios": "@Observable",
+      "android": "StateFlow",
+      "notes": ""
+    },
+    {
+      "match": "recoil",
+      "category": "state",
+      "risk": "low",
+      "ios": "@Observable",
+      "android": "StateFlow",
+      "notes": ""
+    },
+    {
+      "match": "@tanstack/react-query",
+      "category": "server-state",
+      "risk": "medium",
+      "ios": "Repository with cache + async/await",
+      "android": "Repository exposing Flow, Room/in-memory cache",
+      "notes": "Record staleTime, retry, refetchOnFocus/Reconnect, optimistic updates in the spec: users notice these"
+    },
+    {
+      "match": "react-query",
+      "category": "server-state",
+      "risk": "medium",
+      "ios": "Repository with cache",
+      "android": "Repository with Flow",
+      "notes": "Legacy v3 package name"
+    },
+    {
+      "match": "swr",
+      "category": "server-state",
+      "risk": "medium",
+      "ios": "Repository with cache",
+      "android": "Repository with Flow",
+      "notes": ""
+    },
+    {
+      "match": "@apollo/client",
+      "category": "networking",
+      "risk": "medium",
+      "ios": "Apollo iOS",
+      "android": "Apollo Kotlin",
+      "notes": "Reuse .graphql operations and schema; normalized cache policies go in the spec"
+    },
+    {
+      "match": "axios",
+      "category": "networking",
+      "risk": "medium",
+      "ios": "URLSession + swift-openapi-generator client",
+      "android": "Retrofit/OkHttp or Ktor + generated client",
+      "notes": "Interceptors (auth, refresh, headers, retry) -> middleware / OkHttp Authenticator"
+    },
+    {
+      "match": "@react-native-async-storage/async-storage",
+      "category": "storage",
+      "risk": "high",
+      "ios": "UserDefaults (non-sensitive)",
+      "android": "DataStore (Preferences)",
+      "notes": "Legacy data must be migrated on first native launch. Storage format depends on the major version"
+    },
+    {
+      "match": "react-native-mmkv",
+      "category": "storage",
+      "risk": "high",
+      "ios": "MMKV iOS SDK (reads same files) or UserDefaults",
+      "android": "MMKV Android SDK (reads same files) or DataStore",
+      "notes": "Note instance IDs and encryption keys used"
+    },
+    {
+      "match": "expo-secure-store",
+      "category": "secure-storage",
+      "risk": "high",
+      "ios": "Keychain Services",
+      "android": "Android Keystore (+ Tink)",
+      "notes": "Session tokens usually live here. Port the library's decrypt logic for migration"
+    },
+    {
+      "match": "react-native-keychain",
+      "category": "secure-storage",
+      "risk": "high",
+      "ios": "Keychain Services",
+      "android": "Android Keystore (+ Tink)",
+      "notes": "Check service names, access groups, accessibility and biometric flags"
+    },
+    {
+      "match": "react-native-encrypted-storage",
+      "category": "secure-storage",
+      "risk": "high",
+      "ios": "Keychain Services",
+      "android": "Android Keystore (+ Tink)",
+      "notes": "Android side used EncryptedSharedPreferences (deprecated)"
+    },
+    {
+      "match": "expo-sqlite",
+      "category": "database",
+      "risk": "high",
+      "ios": "GRDB / SwiftData / SQLite",
+      "android": "Room",
+      "notes": "Open the same DB file for migration; replicate schema migrations"
+    },
+    {
+      "match": "@op-engineering/op-sqlite",
+      "category": "database",
+      "risk": "high",
+      "ios": "GRDB / SQLite",
+      "android": "Room / SQLite",
+      "notes": ""
+    },
+    {
+      "match": "react-native-sqlite-storage",
+      "category": "database",
+      "risk": "high",
+      "ios": "GRDB / SQLite",
+      "android": "Room / SQLite",
+      "notes": ""
+    },
+    {
+      "match": "react-native-quick-sqlite",
+      "category": "database",
+      "risk": "high",
+      "ios": "GRDB / SQLite",
+      "android": "Room / SQLite",
+      "notes": ""
+    },
+    {
+      "match": "@nozbe/watermelondb",
+      "category": "database",
+      "risk": "high",
+      "ios": "GRDB / SwiftData",
+      "android": "Room",
+      "notes": "SQLite underneath: open it natively; sync protocol must be re-implemented"
+    },
+    {
+      "match": "realm",
+      "category": "database",
+      "risk": "high",
+      "ios": "Realm Swift (or migrate to SwiftData/GRDB)",
+      "android": "Realm Kotlin (or migrate to Room)",
+      "notes": "MongoDB deprecated Atlas Device Sync/SDKs: prefer migrating off"
+    },
+    {
+      "match": "@realm/react",
+      "category": "database",
+      "risk": "high",
+      "ios": "see realm",
+      "android": "see realm",
+      "notes": ""
+    },
+    {
+      "match": "expo-file-system",
+      "category": "files",
+      "risk": "medium",
+      "ios": "FileManager",
+      "android": "Context.filesDir / java.io.File",
+      "notes": "Files written by hybrid stay in the sandbox: note paths"
+    },
+    {
+      "match": "react-native-fs",
+      "category": "files",
+      "risk": "medium",
+      "ios": "FileManager",
+      "android": "java.io.File",
+      "notes": ""
+    },
+    {
+      "match": "react-native-blob-util",
+      "category": "files",
+      "risk": "medium",
+      "ios": "URLSession download tasks + FileManager",
+      "android": "OkHttp / DownloadManager + File",
+      "notes": ""
+    },
+    {
+      "match": "react-native-reanimated",
+      "category": "animation",
+      "risk": "low",
+      "ios": "withAnimation, PhaseAnimator, KeyframeAnimator, matchedGeometryEffect",
+      "android": "animate*AsState, AnimatedVisibility, Transition, SharedTransitionLayout",
+      "notes": "Rebuild the intent; don't port worklets"
+    },
+    {
+      "match": "react-native-gesture-handler",
+      "category": "gestures",
+      "risk": "low",
+      "ios": "SwiftUI gestures",
+      "android": "Modifier.pointerInput / detect*Gestures / draggable",
+      "notes": ""
+    },
+    {
+      "match": "@shopify/flash-list",
+      "category": "ui",
+      "risk": "low",
+      "ios": "List / LazyVStack",
+      "android": "LazyColumn / LazyVerticalGrid",
+      "notes": ""
+    },
+    {
+      "match": "react-native-svg",
+      "category": "ui",
+      "risk": "low",
+      "ios": "SF Symbols / vector assets (PDF/SVG) / Canvas",
+      "android": "ImageVector / vector drawables / Canvas",
+      "notes": ""
+    },
+    {
+      "match": "react-native-vector-icons",
+      "category": "ui",
+      "risk": "low",
+      "ios": "SF Symbols or exported assets",
+      "android": "Material Symbols / vector drawables",
+      "notes": "List every icon used; map once in DesignSystem"
+    },
+    {
+      "match": "@expo/vector-icons",
+      "category": "ui",
+      "risk": "low",
+      "ios": "SF Symbols or exported assets",
+      "android": "Material Symbols / vector drawables",
+      "notes": "List every icon used; map once in DesignSystem"
+    },
+    {
+      "match": "expo-image",
+      "category": "ui",
+      "risk": "low",
+      "ios": "AsyncImage or Nuke / Kingfisher",
+      "android": "Coil",
+      "notes": "Record cache policy and placeholders"
+    },
+    {
+      "match": "react-native-fast-image",
+      "category": "ui",
+      "risk": "low",
+      "ios": "Nuke / Kingfisher",
+      "android": "Coil",
+      "notes": ""
+    },
+    {
+      "match": "lottie-react-native",
+      "category": "animation",
+      "risk": "low",
+      "ios": "lottie-ios",
+      "android": "lottie-compose",
+      "notes": "Reuse the same JSON files"
+    },
+    {
+      "match": "react-native-linear-gradient",
+      "category": "ui",
+      "risk": "low",
+      "ios": "LinearGradient",
+      "android": "Brush.linearGradient",
+      "notes": ""
+    },
+    {
+      "match": "expo-linear-gradient",
+      "category": "ui",
+      "risk": "low",
+      "ios": "LinearGradient",
+      "android": "Brush.linearGradient",
+      "notes": ""
+    },
+    {
+      "match": "expo-blur",
+      "category": "ui",
+      "risk": "low",
+      "ios": "Material (.ultraThinMaterial)",
+      "android": "Translucent scrim, or a backdrop-blur library (e.g. Haze)",
+      "notes": "Modifier.blur blurs the composable itself, not what is behind it"
+    },
+    {
+      "match": "@react-native-community/blur",
+      "category": "ui",
+      "risk": "low",
+      "ios": "Material",
+      "android": "Translucent scrim, or a backdrop-blur library (e.g. Haze)",
+      "notes": "Modifier.blur is not a backdrop blur"
+    },
+    {
+      "match": "@gorhom/bottom-sheet",
+      "category": "ui",
+      "risk": "low",
+      "ios": ".sheet + presentationDetents",
+      "android": "ModalBottomSheet / BottomSheetScaffold",
+      "notes": ""
+    },
+    {
+      "match": "react-native-modal",
+      "category": "ui",
+      "risk": "low",
+      "ios": ".sheet / .fullScreenCover / .alert",
+      "android": "Dialog / ModalBottomSheet / AlertDialog",
+      "notes": ""
+    },
+    {
+      "match": "react-native-pager-view",
+      "category": "ui",
+      "risk": "low",
+      "ios": "TabView(.page)",
+      "android": "HorizontalPager",
+      "notes": ""
+    },
+    {
+      "match": "react-native-tab-view",
+      "category": "ui",
+      "risk": "low",
+      "ios": "Picker(.segmented) + TabView(.page)",
+      "android": "TabRow + HorizontalPager",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-community/datetimepicker",
+      "category": "ui",
+      "risk": "low",
+      "ios": "DatePicker",
+      "android": "Material 3 DatePicker / TimePicker",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-picker/picker",
+      "category": "ui",
+      "risk": "low",
+      "ios": "Picker",
+      "android": "ExposedDropdownMenuBox",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-community/slider",
+      "category": "ui",
+      "risk": "low",
+      "ios": "Slider",
+      "android": "Slider",
+      "notes": ""
+    },
+    {
+      "match": "react-native-toast-message",
+      "category": "ui",
+      "risk": "low",
+      "ios": "DesignSystem toast overlay",
+      "android": "Snackbar",
+      "notes": ""
+    },
+    {
+      "match": "react-native-webview",
+      "category": "webview",
+      "risk": "medium",
+      "ios": "WKWebView (UIViewRepresentable) or SwiftUI WebView (iOS 26+)",
+      "android": "WebView via AndroidView",
+      "notes": "Decide per screen: keep web content or rebuild natively. Check JS bridges (postMessage)"
+    },
+    {
+      "match": "react-native-maps",
+      "category": "maps",
+      "risk": "medium",
+      "ios": "MapKit (SwiftUI Map) or Google Maps SDK",
+      "android": "Google Maps Compose",
+      "notes": "Provider may differ per platform in hybrid: check PROVIDER_GOOGLE usage"
+    },
+    {
+      "match": "@rnmapbox/maps",
+      "category": "maps",
+      "risk": "medium",
+      "ios": "Mapbox Maps SDK for iOS",
+      "android": "Mapbox Maps SDK for Android",
+      "notes": ""
+    },
+    {
+      "match": "nativewind",
+      "category": "styling",
+      "risk": "low",
+      "ios": "Design tokens + DesignSystem",
+      "android": "Design tokens + :core:designsystem",
+      "notes": "tailwind.config.js is a token source"
+    },
+    {
+      "match": "tailwindcss",
+      "category": "styling",
+      "risk": "low",
+      "ios": "Design tokens",
+      "android": "Design tokens",
+      "notes": ""
+    },
+    {
+      "match": "styled-components",
+      "category": "styling",
+      "risk": "low",
+      "ios": "Design tokens + DesignSystem",
+      "android": "Design tokens + :core:designsystem",
+      "notes": "ThemeProvider theme object is a token source"
+    },
+    {
+      "match": "@emotion/native",
+      "category": "styling",
+      "risk": "low",
+      "ios": "Design tokens",
+      "android": "Design tokens",
+      "notes": ""
+    },
+    {
+      "match": "react-native-paper",
+      "category": "ui-kit",
+      "risk": "low",
+      "ios": "DesignSystem components",
+      "android": "Material 3 (close match)",
+      "notes": ""
+    },
+    {
+      "match": "tamagui",
+      "category": "ui-kit",
+      "risk": "low",
+      "ios": "DesignSystem components",
+      "android": "DesignSystem components",
+      "notes": "Tamagui config is a token source"
+    },
+    {
+      "match": "@rneui/themed",
+      "category": "ui-kit",
+      "risk": "low",
+      "ios": "DesignSystem components",
+      "android": "DesignSystem components",
+      "notes": ""
+    },
+    {
+      "match": "native-base",
+      "category": "ui-kit",
+      "risk": "low",
+      "ios": "DesignSystem components",
+      "android": "DesignSystem components",
+      "notes": ""
+    },
+    {
+      "match": "@gluestack-ui/*",
+      "category": "ui-kit",
+      "risk": "low",
+      "ios": "DesignSystem components",
+      "android": "DesignSystem components",
+      "notes": ""
+    },
+    {
+      "match": "expo-splash-screen",
+      "category": "app-shell",
+      "risk": "low",
+      "ios": "Launch screen (UILaunchScreen)",
+      "android": "core-splashscreen (SplashScreen API)",
+      "notes": "preventAutoHideAsync logic = startup gating: specify it"
+    },
+    {
+      "match": "react-native-bootsplash",
+      "category": "app-shell",
+      "risk": "low",
+      "ios": "Launch screen",
+      "android": "core-splashscreen",
+      "notes": ""
+    },
+    {
+      "match": "expo-font",
+      "category": "app-shell",
+      "risk": "low",
+      "ios": "Bundled fonts (UIAppFonts)",
+      "android": "res/font",
+      "notes": "Check font licences for native embedding"
+    },
+    {
+      "match": "@expo-google-fonts/*",
+      "category": "app-shell",
+      "risk": "low",
+      "ios": "Bundled fonts",
+      "android": "res/font or downloadable fonts",
+      "notes": ""
+    },
+    {
+      "match": "expo-status-bar",
+      "category": "app-shell",
+      "risk": "low",
+      "ios": "preferredColorScheme / toolbar styles",
+      "android": "enableEdgeToEdge() SystemBarStyle",
+      "notes": ""
+    },
+    {
+      "match": "expo-screen-orientation",
+      "category": "form-factors",
+      "risk": "medium",
+      "ios": "Supported orientations per scene; no runtime locks on large screens",
+      "android": "Activity orientation (ignored on sw≥600dp at targetSdk 36)",
+      "notes": "Runtime orientation locks: record each screen in the spec's Form factors (ADR-0017)"
+    },
+    {
+      "match": "react-native-orientation-locker",
+      "category": "form-factors",
+      "risk": "medium",
+      "ios": "Supported orientations per scene",
+      "android": "Activity orientation (ignored on large screens at targetSdk 36)",
+      "notes": "Same as expo-screen-orientation"
+    },
+    {
+      "match": "expo-camera",
+      "category": "device",
+      "risk": "medium",
+      "ios": "AVFoundation (AVCaptureSession)",
+      "android": "CameraX",
+      "notes": ""
+    },
+    {
+      "match": "react-native-vision-camera",
+      "category": "device",
+      "risk": "medium",
+      "ios": "AVFoundation",
+      "android": "CameraX",
+      "notes": "Frame processors -> Vision / ML Kit"
+    },
+    {
+      "match": "expo-barcode-scanner",
+      "category": "device",
+      "risk": "medium",
+      "ios": "VisionKit DataScannerViewController / AVCaptureMetadataOutput",
+      "android": "ML Kit barcode scanning + CameraX",
+      "notes": "Deprecated in Expo"
+    },
+    {
+      "match": "expo-image-picker",
+      "category": "device",
+      "risk": "low",
+      "ios": "PhotosPicker",
+      "android": "Photo Picker (PickVisualMedia)",
+      "notes": ""
+    },
+    {
+      "match": "react-native-image-picker",
+      "category": "device",
+      "risk": "low",
+      "ios": "PhotosPicker / UIImagePickerController (camera)",
+      "android": "Photo Picker / TakePicture contract",
+      "notes": ""
+    },
+    {
+      "match": "react-native-image-crop-picker",
+      "category": "device",
+      "risk": "low",
+      "ios": "PhotosPicker + custom crop",
+      "android": "Photo Picker + crop library",
+      "notes": ""
+    },
+    {
+      "match": "expo-media-library",
+      "category": "device",
+      "risk": "low",
+      "ios": "Photos framework",
+      "android": "MediaStore",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-camera-roll/camera-roll",
+      "category": "device",
+      "risk": "low",
+      "ios": "Photos framework",
+      "android": "MediaStore",
+      "notes": ""
+    },
+    {
+      "match": "expo-location",
+      "category": "device",
+      "risk": "medium",
+      "ios": "CoreLocation (CLLocationUpdate)",
+      "android": "Fused Location Provider",
+      "notes": "Background location = extra review scrutiny on both stores"
+    },
+    {
+      "match": "react-native-geolocation-service",
+      "category": "device",
+      "risk": "medium",
+      "ios": "CoreLocation",
+      "android": "Fused Location Provider",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-community/geolocation",
+      "category": "device",
+      "risk": "medium",
+      "ios": "CoreLocation",
+      "android": "Fused Location Provider",
+      "notes": ""
+    },
+    {
+      "match": "expo-local-authentication",
+      "category": "auth",
+      "risk": "medium",
+      "ios": "LocalAuthentication (LAContext)",
+      "android": "androidx.biometric BiometricPrompt",
+      "notes": ""
+    },
+    {
+      "match": "react-native-biometrics",
+      "category": "auth",
+      "risk": "medium",
+      "ios": "LocalAuthentication + Keychain",
+      "android": "BiometricPrompt + Keystore",
+      "notes": "Keys created by the library may be bound to biometrics: check migration"
+    },
+    {
+      "match": "react-native-permissions",
+      "category": "device",
+      "risk": "low",
+      "ios": "Per-framework authorization APIs",
+      "android": "ActivityResultContracts.RequestPermission",
+      "notes": "Centralise in a core permissions module on both"
+    },
+    {
+      "match": "@react-native-community/netinfo",
+      "category": "device",
+      "risk": "low",
+      "ios": "NWPathMonitor",
+      "android": "ConnectivityManager.NetworkCallback",
+      "notes": ""
+    },
+    {
+      "match": "react-native-device-info",
+      "category": "device",
+      "risk": "low",
+      "ios": "UIDevice / Bundle / ProcessInfo",
+      "android": "Build / PackageManager",
+      "notes": "Device IDs sent to backend must stay stable: check which one"
+    },
+    {
+      "match": "expo-device",
+      "category": "device",
+      "risk": "low",
+      "ios": "UIDevice",
+      "android": "Build",
+      "notes": ""
+    },
+    {
+      "match": "expo-application",
+      "category": "device",
+      "risk": "low",
+      "ios": "Bundle / identifierForVendor",
+      "android": "PackageManager / ANDROID_ID",
+      "notes": "IDs sent to backend must stay stable"
+    },
+    {
+      "match": "expo-constants",
+      "category": "config",
+      "risk": "low",
+      "ios": "Info.plist / build settings",
+      "android": "BuildConfig",
+      "notes": "expoConfig.extra values = build-time config"
+    },
+    {
+      "match": "expo-haptics",
+      "category": "device",
+      "risk": "low",
+      "ios": ".sensoryFeedback / UIFeedbackGenerator",
+      "android": "HapticFeedback / performHapticFeedback",
+      "notes": ""
+    },
+    {
+      "match": "react-native-haptic-feedback",
+      "category": "device",
+      "risk": "low",
+      "ios": ".sensoryFeedback",
+      "android": "performHapticFeedback",
+      "notes": ""
+    },
+    {
+      "match": "expo-linking",
+      "category": "links",
+      "risk": "medium",
+      "ios": "onOpenURL + universal links",
+      "android": "Intent filters + App Links",
+      "notes": ""
+    },
+    {
+      "match": "expo-web-browser",
+      "category": "links",
+      "risk": "low",
+      "ios": "SFSafariViewController / openURL",
+      "android": "Custom Tabs",
+      "notes": ""
+    },
+    {
+      "match": "react-native-inappbrowser-reborn",
+      "category": "links",
+      "risk": "low",
+      "ios": "SFSafariViewController",
+      "android": "Custom Tabs",
+      "notes": ""
+    },
+    {
+      "match": "expo-sharing",
+      "category": "device",
+      "risk": "low",
+      "ios": "ShareLink / UIActivityViewController",
+      "android": "Sharesheet (ACTION_SEND)",
+      "notes": ""
+    },
+    {
+      "match": "react-native-share",
+      "category": "device",
+      "risk": "low",
+      "ios": "ShareLink",
+      "android": "Sharesheet",
+      "notes": ""
+    },
+    {
+      "match": "expo-clipboard",
+      "category": "device",
+      "risk": "low",
+      "ios": "UIPasteboard",
+      "android": "ClipboardManager",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-clipboard/clipboard",
+      "category": "device",
+      "risk": "low",
+      "ios": "UIPasteboard",
+      "android": "ClipboardManager",
+      "notes": ""
+    },
+    {
+      "match": "expo-document-picker",
+      "category": "device",
+      "risk": "low",
+      "ios": ".fileImporter",
+      "android": "OpenDocument contract",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-documents/picker",
+      "category": "device",
+      "risk": "low",
+      "ios": ".fileImporter",
+      "android": "OpenDocument contract",
+      "notes": ""
+    },
+    {
+      "match": "expo-contacts",
+      "category": "device",
+      "risk": "low",
+      "ios": "Contacts / ContactsUI",
+      "android": "ContactsContract",
+      "notes": ""
+    },
+    {
+      "match": "react-native-contacts",
+      "category": "device",
+      "risk": "low",
+      "ios": "Contacts / ContactsUI",
+      "android": "ContactsContract",
+      "notes": ""
+    },
+    {
+      "match": "expo-calendar",
+      "category": "device",
+      "risk": "low",
+      "ios": "EventKit",
+      "android": "CalendarContract",
+      "notes": ""
+    },
+    {
+      "match": "expo-av",
+      "category": "media",
+      "risk": "medium",
+      "ios": "AVPlayer / AVAudioSession",
+      "android": "Media3 ExoPlayer",
+      "notes": "Deprecated in Expo in favour of expo-video / expo-audio"
+    },
+    {
+      "match": "expo-video",
+      "category": "media",
+      "risk": "medium",
+      "ios": "AVKit VideoPlayer",
+      "android": "Media3 ExoPlayer + PlayerView",
+      "notes": ""
+    },
+    {
+      "match": "expo-audio",
+      "category": "media",
+      "risk": "medium",
+      "ios": "AVAudioPlayer / AVAudioSession",
+      "android": "Media3",
+      "notes": ""
+    },
+    {
+      "match": "react-native-video",
+      "category": "media",
+      "risk": "medium",
+      "ios": "AVPlayer",
+      "android": "Media3 ExoPlayer",
+      "notes": "DRM config must be ported"
+    },
+    {
+      "match": "react-native-track-player",
+      "category": "media",
+      "risk": "medium",
+      "ios": "AVPlayer + MPNowPlayingInfoCenter",
+      "android": "Media3 MediaSessionService",
+      "notes": "Background playback entitlements"
+    },
+    {
+      "match": "react-native-ble-plx",
+      "category": "device",
+      "risk": "medium",
+      "ios": "CoreBluetooth",
+      "android": "android.bluetooth.le",
+      "notes": ""
+    },
+    {
+      "match": "react-native-nfc-manager",
+      "category": "device",
+      "risk": "medium",
+      "ios": "Core NFC",
+      "android": "android.nfc",
+      "notes": ""
+    },
+    {
+      "match": "expo-background-fetch",
+      "category": "background",
+      "risk": "medium",
+      "ios": "BGTaskScheduler",
+      "android": "WorkManager",
+      "notes": ""
+    },
+    {
+      "match": "expo-task-manager",
+      "category": "background",
+      "risk": "medium",
+      "ios": "BGTaskScheduler / location updates",
+      "android": "WorkManager / foreground service",
+      "notes": ""
+    },
+    {
+      "match": "react-native-background-fetch",
+      "category": "background",
+      "risk": "medium",
+      "ios": "BGTaskScheduler",
+      "android": "WorkManager",
+      "notes": ""
+    },
+    {
+      "match": "expo-notifications",
+      "category": "push",
+      "risk": "high",
+      "ios": "UserNotifications + APNs",
+      "android": "FCM (firebase-messaging) + notification channels",
+      "notes": "If the backend sends through the Expo Push API (ExponentPushToken), plan the switch to APNs/FCM tokens"
+    },
+    {
+      "match": "@react-native-firebase/messaging",
+      "category": "push",
+      "risk": "high",
+      "ios": "FirebaseMessaging",
+      "android": "firebase-messaging",
+      "notes": "Same Firebase project; check token registration endpoint"
+    },
+    {
+      "match": "@notifee/react-native",
+      "category": "push",
+      "risk": "medium",
+      "ios": "UNUserNotificationCenter",
+      "android": "NotificationCompat + channels",
+      "notes": "Keep channel IDs identical (user channel settings are keyed by ID)"
+    },
+    {
+      "match": "react-native-push-notification",
+      "category": "push",
+      "risk": "medium",
+      "ios": "UserNotifications",
+      "android": "NotificationCompat + channels",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-community/push-notification-ios",
+      "category": "push",
+      "risk": "medium",
+      "ios": "UserNotifications",
+      "android": "n/a",
+      "notes": ""
+    },
+    {
+      "match": "react-native-onesignal",
+      "category": "push",
+      "risk": "high",
+      "ios": "OneSignal iOS SDK",
+      "android": "OneSignal Android SDK",
+      "notes": ""
+    },
+    {
+      "match": "@braze/react-native-sdk",
+      "category": "engagement",
+      "risk": "medium",
+      "ios": "Braze Swift SDK",
+      "android": "Braze Android SDK",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-firebase/dynamic-links",
+      "category": "links",
+      "risk": "high",
+      "ios": "Universal links (Firebase Dynamic Links is shut down)",
+      "android": "App Links",
+      "notes": "Replace before cut-over"
+    },
+    {
+      "match": "@react-native-firebase/*",
+      "category": "firebase",
+      "risk": "medium",
+      "ios": "Firebase Apple SDK (same module)",
+      "android": "Firebase Android SDK (same module)",
+      "notes": "Reuse GoogleService-Info.plist / google-services.json"
+    },
+    {
+      "match": "@segment/analytics-react-native",
+      "category": "analytics",
+      "risk": "high",
+      "ios": "analytics-swift",
+      "android": "analytics-kotlin",
+      "notes": "Event names verbatim (contracts/analytics)"
+    },
+    {
+      "match": "@amplitude/analytics-react-native",
+      "category": "analytics",
+      "risk": "high",
+      "ios": "Amplitude-Swift",
+      "android": "Amplitude-Kotlin",
+      "notes": "Keep device/user ID continuity"
+    },
+    {
+      "match": "mixpanel-react-native",
+      "category": "analytics",
+      "risk": "high",
+      "ios": "mixpanel-swift",
+      "android": "mixpanel-android",
+      "notes": "Keep distinct_id continuity"
+    },
+    {
+      "match": "posthog-react-native",
+      "category": "analytics",
+      "risk": "high",
+      "ios": "posthog-ios",
+      "android": "posthog-android",
+      "notes": ""
+    },
+    {
+      "match": "@sentry/react-native",
+      "category": "crash-reporting",
+      "risk": "medium",
+      "ios": "sentry-cocoa",
+      "android": "sentry-android",
+      "notes": "Tag releases to compare hybrid vs native"
+    },
+    {
+      "match": "sentry-expo",
+      "category": "crash-reporting",
+      "risk": "medium",
+      "ios": "sentry-cocoa",
+      "android": "sentry-android",
+      "notes": ""
+    },
+    {
+      "match": "@bugsnag/react-native",
+      "category": "crash-reporting",
+      "risk": "medium",
+      "ios": "bugsnag-cocoa",
+      "android": "bugsnag-android",
+      "notes": ""
+    },
+    {
+      "match": "@launchdarkly/react-native-client-sdk",
+      "category": "flags",
+      "risk": "medium",
+      "ios": "LaunchDarkly iOS SDK",
+      "android": "LaunchDarkly Android SDK",
+      "notes": "Same flag keys and context attributes"
+    },
+    {
+      "match": "@statsig/react-native-bindings",
+      "category": "flags",
+      "risk": "medium",
+      "ios": "Statsig iOS SDK",
+      "android": "Statsig Android SDK",
+      "notes": ""
+    },
+    {
+      "match": "react-native-iap",
+      "category": "payments",
+      "risk": "high",
+      "ios": "StoreKit 2",
+      "android": "Play Billing Library",
+      "notes": "Same product IDs; restore + receipt validation flow"
+    },
+    {
+      "match": "expo-in-app-purchases",
+      "category": "payments",
+      "risk": "high",
+      "ios": "StoreKit 2",
+      "android": "Play Billing Library",
+      "notes": "Deprecated"
+    },
+    {
+      "match": "react-native-purchases",
+      "category": "payments",
+      "risk": "high",
+      "ios": "RevenueCat purchases-ios",
+      "android": "RevenueCat purchases-android",
+      "notes": "Same app user ID for entitlement continuity"
+    },
+    {
+      "match": "@stripe/stripe-react-native",
+      "category": "payments",
+      "risk": "high",
+      "ios": "Stripe iOS SDK",
+      "android": "Stripe Android SDK",
+      "notes": ""
+    },
+    {
+      "match": "expo-auth-session",
+      "category": "auth",
+      "risk": "high",
+      "ios": "ASWebAuthenticationSession (or AppAuth-iOS)",
+      "android": "AppAuth-Android / Custom Tabs",
+      "notes": "Register native redirect URIs with the IdP"
+    },
+    {
+      "match": "react-native-app-auth",
+      "category": "auth",
+      "risk": "high",
+      "ios": "AppAuth-iOS",
+      "android": "AppAuth-Android",
+      "notes": ""
+    },
+    {
+      "match": "@react-native-google-signin/google-signin",
+      "category": "auth",
+      "risk": "high",
+      "ios": "GoogleSignIn-iOS",
+      "android": "Credential Manager (Sign in with Google)",
+      "notes": ""
+    },
+    {
+      "match": "expo-apple-authentication",
+      "category": "auth",
+      "risk": "high",
+      "ios": "AuthenticationServices (Sign in with Apple)",
+      "android": "Web flow (if offered)",
+      "notes": ""
+    },
+    {
+      "match": "@invertase/react-native-apple-authentication",
+      "category": "auth",
+      "risk": "high",
+      "ios": "AuthenticationServices",
+      "android": "Web flow",
+      "notes": ""
+    },
+    {
+      "match": "react-native-fbsdk-next",
+      "category": "auth",
+      "risk": "medium",
+      "ios": "Facebook iOS SDK",
+      "android": "Facebook Android SDK",
+      "notes": ""
+    },
+    {
+      "match": "expo-updates",
+      "category": "ota",
+      "risk": "high",
+      "ios": "none (store releases)",
+      "android": "none (store releases)",
+      "notes": "Analyse the JS actually live in production; freeze OTA before cut-over"
+    },
+    {
+      "match": "react-native-code-push",
+      "category": "ota",
+      "risk": "high",
+      "ios": "none",
+      "android": "none",
+      "notes": "App Center is retired; same OTA caveats"
+    },
+    {
+      "match": "react-native-config",
+      "category": "config",
+      "risk": "low",
+      "ios": "xcconfig + Info.plist",
+      "android": "buildConfigField + product flavors",
+      "notes": ".env files -> build configurations"
+    },
+    {
+      "match": "react-native-dotenv",
+      "category": "config",
+      "risk": "low",
+      "ios": "xcconfig",
+      "android": "buildConfigField",
+      "notes": ""
+    },
+    {
+      "match": "i18next",
+      "category": "i18n",
+      "risk": "medium",
+      "ios": "String Catalogs (generated)",
+      "android": "strings.xml (generated)",
+      "notes": "Keys reused verbatim via contracts/strings"
+    },
+    {
+      "match": "react-i18next",
+      "category": "i18n",
+      "risk": "low",
+      "ios": "String Catalogs",
+      "android": "strings.xml",
+      "notes": ""
+    },
+    {
+      "match": "i18n-js",
+      "category": "i18n",
+      "risk": "medium",
+      "ios": "String Catalogs",
+      "android": "strings.xml",
+      "notes": ""
+    },
+    {
+      "match": "react-intl",
+      "category": "i18n",
+      "risk": "medium",
+      "ios": "String Catalogs",
+      "android": "strings.xml",
+      "notes": "ICU message syntax: convert placeholders and plurals carefully"
+    },
+    {
+      "match": "expo-localization",
+      "category": "i18n",
+      "risk": "low",
+      "ios": "Locale.current",
+      "android": "LocaleManager / per-app language",
+      "notes": ""
+    },
+    {
+      "match": "react-native-localize",
+      "category": "i18n",
+      "risk": "low",
+      "ios": "Locale.current",
+      "android": "LocaleManager",
+      "notes": ""
+    },
+    {
+      "match": "moment",
+      "category": "dates",
+      "risk": "medium",
+      "ios": "Date + FormatStyle / Calendar",
+      "android": "java.time",
+      "notes": "Specify expected output per locale; formats differ subtly"
+    },
+    {
+      "match": "dayjs",
+      "category": "dates",
+      "risk": "medium",
+      "ios": "Date + FormatStyle",
+      "android": "java.time",
+      "notes": ""
+    },
+    {
+      "match": "date-fns",
+      "category": "dates",
+      "risk": "medium",
+      "ios": "Date + FormatStyle",
+      "android": "java.time",
+      "notes": ""
+    },
+    {
+      "match": "luxon",
+      "category": "dates",
+      "risk": "medium",
+      "ios": "Date + FormatStyle",
+      "android": "java.time",
+      "notes": ""
+    },
+    {
+      "match": "zod",
+      "category": "validation",
+      "risk": "medium",
+      "ios": "Validators in domain/view model",
+      "android": "Validators in domain/view model",
+      "notes": "Schemas are the business rules: turn them into ACs + shared test vectors"
+    },
+    {
+      "match": "yup",
+      "category": "validation",
+      "risk": "medium",
+      "ios": "Validators",
+      "android": "Validators",
+      "notes": ""
+    },
+    {
+      "match": "react-hook-form",
+      "category": "forms",
+      "risk": "low",
+      "ios": "Form state in view model",
+      "android": "Form state in view model",
+      "notes": "Note validation mode (onBlur/onChange/onSubmit)"
+    },
+    {
+      "match": "formik",
+      "category": "forms",
+      "risk": "low",
+      "ios": "Form state in view model",
+      "android": "Form state in view model",
+      "notes": ""
+    },
+    {
+      "match": "lodash",
+      "category": "utility",
+      "risk": "low",
+      "ios": "Swift standard library",
+      "android": "Kotlin standard library",
+      "notes": ""
+    },
+    {
+      "match": "patch-package",
+      "category": "tooling",
+      "risk": "medium",
+      "ios": "n/a",
+      "android": "n/a",
+      "notes": "Each patch in patches/ is behaviour to reproduce or drop"
+    },
+    {
+      "match": "detox",
+      "category": "testing",
+      "risk": "low",
+      "ios": "Maestro flows (e2e/)",
+      "android": "Maestro flows (e2e/)",
+      "notes": "Existing Detox tests are behaviour evidence: port to Maestro"
+    },
+    {
+      "match": "@testing-library/react-native",
+      "category": "testing",
+      "risk": "low",
+      "ios": "Swift Testing / snapshot tests",
+      "android": "JUnit / Compose UI tests",
+      "notes": "Existing tests = acceptance criteria candidates"
+    },
+    {
+      "match": "jest",
+      "category": "testing",
+      "risk": "low",
+      "ios": "Swift Testing",
+      "android": "JUnit",
+      "notes": "Pure-logic tests give test vectors for contracts/fixtures"
+    },
+    {
+      "match": "expo-dev-client",
+      "category": "tooling",
+      "risk": "low",
+      "ios": "n/a",
+      "android": "n/a",
+      "notes": ""
+    }
+  ]
+}

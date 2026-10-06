@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "installDir": ".claude/skills",
+  "note": "Curated third-party skills, pinned to exact commits. Edit this file, then run: node tools/skills-sync.mjs. Rationale and precedence rules: guidelines/14-platform-skills.md",
+  "sources": [
+    {
+      "id": "avdlee-swiftui",
+      "repo": "https://github.com/AvdLee/SwiftUI-Agent-Skill",
+      "ref": "5.2.0",
+      "commit": "9808b069e9603d2a1f26b8364b67415623ab3edb",
+      "pinnedOn": "2026-09-29",
+      "license": "MIT",
+      "licenseFile": "LICENSE",
+      "skills": [
+        {
+          "path": "skills/swiftui-expert-skill",
+          "installAs": "swiftui-expert",
+          "paths": ["ios/**"],
+          "note": "guidelines/14-platform-skills.md#swiftui-expert"
+        }
+      ]
+    },
+    {
+      "id": "avdlee-xcode-build",
+      "repo": "https://github.com/AvdLee/Xcode-Build-Optimization-Agent-Skill",
+      "ref": "main (1.0.1+)",
+      "commit": "6bd7b596cd688b1127ded00e812b1b6937ec35d6",
+      "pinnedOn": "2026-09-29",
+      "license": "MIT",
+      "licenseFile": "LICENSE",
+      "skills": [
+        {
+          "path": "skills/xcode-build-orchestrator", "installAs": "xcode-build-orchestrator", "paths": ["ios/**"], "disableModelInvocation": true,
+          "note": "guidelines/14-platform-skills.md#xcode-build-optimization",
+          "replace": [
+            { "file": "SKILL.md", "required": true, "from": "delegating approved fixes to xcode-build-fixer", "to": "handing approved fixes to a human (kit override, because the fixer is not vendored in this workspace)" },
+            { "file": "SKILL.md", "required": true, "from": "Delegate all implementation work to [`xcode-build-fixer`](../xcode-build-fixer/SKILL.md) by reading its SKILL.md and applying its workflow.", "to": "**Kit override:** stop after the approved plan. `xcode-build-fixer` is not vendored in this workspace. A human applies the approved items via xcconfig / `Project.swift` in a reviewed PR (never by hand-editing `project.pbxproj`), then re-runs the benchmark. See guidelines/14-platform-skills.md §4." },
+            { "file": "SKILL.md", "required": true, "from": "11. Hand off to `xcode-build-fixer` with the approved plan. The fixer applies each approved change, verifies compilation, and re-benchmarks.", "to": "11. Hand the approved plan to a human (kit override: no fixer in this workspace). After they apply it, re-run the benchmark with the same contract." },
+            { "file": "SKILL.md", "required": true, "from": "After approval, delegate to `xcode-build-fixer`:", "to": "After approval, a human applies the changes (kit override: no fixer in this workspace). These constraints still apply to them:" },
+            { "file": "SKILL.md", "required": true, "from": "- a ready-to-paste community results row and a link to open a PR (see the report template)", "to": "- (kit override: skip the community results row and PR, for client confidentiality)" }
+          ]
+        },
+        { "path": "skills/xcode-build-benchmark", "installAs": "xcode-build-benchmark", "paths": ["ios/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#xcode-build-optimization" },
+        { "path": "skills/xcode-project-analyzer", "installAs": "xcode-project-analyzer", "paths": ["ios/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#xcode-build-optimization" },
+        { "path": "skills/xcode-compilation-analyzer", "installAs": "xcode-compilation-analyzer", "paths": ["ios/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#xcode-build-optimization" },
+        { "path": "skills/spm-build-analysis", "installAs": "spm-build-analysis", "paths": ["ios/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#xcode-build-optimization" }
+      ]
+    },
+    {
+      "id": "iphone-duo",
+      "repo": "https://github.com/mirzaaghazadeh/iphone-duo-skills",
+      "ref": "main (v1.4.0)",
+      "commit": "b8b9d15b4dc987d0c35940265e07f4128ba79361",
+      "pinnedOn": "2026-09-29",
+      "license": "MIT (with trademark notice)",
+      "licenseFile": "LICENSE",
+      "skills": [
+        {
+          "path": "skills/iphone-duo-readiness", "installAs": "iphone-duo-readiness", "paths": ["ios/**"], "disableModelInvocation": true,
+          "extraFiles": [{ "from": "reference", "to": "reference" }],
+          "replace": [
+            { "file": "SKILL.md", "from": "../../reference/", "to": "reference/" },
+            { "file": "SKILL.md", "from": "../reference/", "to": "reference/" },
+            { "file": "reference/device-facts.md", "required": true, "from": "../skills/", "to": "../../" },
+            { "file": "reference/api-index.md", "required": true, "from": "../skills/", "to": "../../" }
+          ],
+          "note": "guidelines/14-platform-skills.md#iphone-duo"
+        },
+        { "path": "skills/iphone-duo-adaptive-layout", "installAs": "iphone-duo-adaptive-layout", "paths": ["ios/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#iphone-duo" },
+        { "path": "skills/iphone-duo-vertical-bars", "installAs": "iphone-duo-vertical-bars", "paths": ["ios/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#iphone-duo" },
+        { "path": "skills/iphone-duo-dual-pane-patterns", "installAs": "iphone-duo-dual-pane-patterns", "paths": ["ios/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#iphone-duo" },
+        { "path": "skills/iphone-duo-design-review", "installAs": "iphone-duo-design-review", "paths": ["ios/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#iphone-duo" },
+        { "path": "skills/iphone-duo-hinge-and-scenes", "installAs": "iphone-duo-hinge-and-scenes", "paths": ["ios/**"], "disableModelInvocation": true, "enabled": false, "note": "guidelines/14-platform-skills.md#iphone-duo" },
+        { "path": "skills/iphone-duo-camera", "installAs": "iphone-duo-camera", "paths": ["ios/**"], "disableModelInvocation": true, "enabled": false, "note": "guidelines/14-platform-skills.md#iphone-duo" }
+      ]
+    },
+    {
+      "id": "google-android",
+      "repo": "https://github.com/android/skills",
+      "ref": "main (plugin v1.0.13)",
+      "commit": "42dc2270e96032bd860bb94511e440aa00a43125",
+      "pinnedOn": "2026-09-29",
+      "license": "Apache-2.0",
+      "licenseFile": "LICENSE.txt",
+      "skills": [
+        { "path": "navigation/navigation-3", "installAs": "android-navigation-3", "paths": ["android/**"], "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "navigation/navigation-event", "installAs": "android-navigation-event", "paths": ["android/**"], "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "system/edge-to-edge", "installAs": "android-edge-to-edge", "paths": ["android/**"], "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "jetpack-compose/adaptive", "installAs": "android-adaptive", "paths": ["android/**"], "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "testing/testing-setup", "installAs": "android-testing-setup", "paths": ["android/**"], "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "security/android-intent-security", "installAs": "android-intent-security", "paths": ["android/**"], "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "security/android-permissions-security", "installAs": "android-permissions-security", "paths": ["android/**"], "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "build-system/agp/agp-9-upgrade", "installAs": "android-agp-9-upgrade", "paths": ["android/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "performance/r8-analyzer", "installAs": "android-r8-analyzer", "paths": ["android/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "profilers/android-profiler", "installAs": "android-profiler", "paths": ["android/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "play/play-policy-insights", "installAs": "android-play-policy-insights", "paths": ["android/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "devtools/android-cli", "installAs": "android-cli", "paths": ["android/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "camera/camerax", "installAs": "android-camerax", "paths": ["android/**"], "enabled": false, "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "identity/restore-credentials", "installAs": "android-restore-credentials", "paths": ["android/**"], "enabled": false, "note": "guidelines/14-platform-skills.md#google-android-skills" },
+        { "path": "play/play-billing-library-version-upgrade", "installAs": "android-play-billing-upgrade", "paths": ["android/**"], "disableModelInvocation": true, "enabled": false, "note": "guidelines/14-platform-skills.md#google-android-skills" }
+      ]
+    },
+    {
+      "id": "community-android",
+      "repo": "https://github.com/new-silvermoon/awesome-android-agent-skills",
+      "ref": "main",
+      "commit": "82900eacc8dbe13de93c6310af27b9df4b2bd2f6",
+      "pinnedOn": "2026-09-29",
+      "license": "Apache-2.0",
+      "licenseFile": "LICENSE",
+      "skills": [
+        { "path": ".github/skills/performance/compose-performance-audit", "installAs": "compose-performance-audit", "paths": ["android/**"], "note": "guidelines/14-platform-skills.md#community-android-skills" },
+        { "path": ".github/skills/performance/gradle-build-performance", "installAs": "gradle-build-performance", "paths": ["android/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#community-android-skills" },
+        { "path": ".github/skills/testing_and_automation/android-emulator-skill", "installAs": "android-emulator", "paths": ["android/**"], "disableModelInvocation": true, "note": "guidelines/14-platform-skills.md#community-android-skills" }
+      ]
+    }
+  ]
+}

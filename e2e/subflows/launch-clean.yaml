@@ -1,0 +1,5 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true   # iOS: clearState keeps Keychain items (tokens), which would make iOS and Android diverge

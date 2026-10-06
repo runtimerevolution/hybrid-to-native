@@ -1,0 +1,514 @@
+<title>Hybrid to Native Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Schibsted+Grotesk:wght@600;700;800&display=swap">
+<style>
+/* Layout: one shared spine (spec → contract) that splits into an iOS lane and an Android lane; amber marks gates. Role picker on top, role view below. */
+:root {
+  --paper: #F1F3F5;
+  --surface: #FFFFFF;
+  --ink: #16202A;
+  --muted: #56636F;
+  --line: #D4DAE0;
+  --code-bg: #E8ECF0;
+  --ios: #2358BF;
+  --ios-soft: #E4ECFA;
+  --android: #13795A;
+  --android-soft: #E1F2EA;
+  --gate: #9A6414;
+  --gate-soft: #FBEFD9;
+  --gate-line: #E2B870;
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --s1: 13px; --s2: 15px; --s3: 17px; --s4: 21px; --s5: 28px; --s6: 40px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E141A; --surface: #151D25; --ink: #E4E9EE; --muted: #9BA7B3; --line: #28333E; --code-bg: #1B252F;
+    --ios: #7AA6F6; --ios-soft: #172642; --android: #4FC596; --android-soft: #11322A;
+    --gate: #E6AE55; --gate-soft: #33260F; --gate-line: #7A5820;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E141A; --surface: #151D25; --ink: #E4E9EE; --muted: #9BA7B3; --line: #28333E; --code-bg: #1B252F;
+  --ios: #7AA6F6; --ios-soft: #172642; --android: #4FC596; --android-soft: #11322A;
+  --gate: #E6AE55; --gate-soft: #33260F; --gate-line: #7A5820;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 400 var(--s2)/1.6 var(--body); padding-inline: 16px; padding-block: 0 64px; }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(30px, 5vw, var(--s6)); font-weight: 800; }
+h2 { font-size: var(--s5); font-weight: 700; }
+h3 { font-size: var(--s3); font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--ios); }
+code, .mono { font-family: var(--mono); font-size: 0.9em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+section { display: grid; gap: 18px; min-width: 0; }
+
+/* sticky role bar */
+.rolebar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); border-bottom: 1px solid var(--line); margin-inline: -16px; padding: 10px 16px; }
+.rolebar-inner { max-width: 1080px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.rolebar .label { font-size: var(--s1); color: var(--muted); margin-right: 4px; }
+.chip { font: 500 var(--s1)/1 var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 8px 12px; border-radius: 999px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.chip:focus-visible, .role-card:focus-visible, .copy:focus-visible { outline: 3px solid var(--ios); outline-offset: 2px; }
+.kit-tag { margin-left: auto; font: 500 12px/1 var(--mono); color: var(--muted); }
+
+/* header */
+header.top { display: grid; gap: 14px; padding-top: 36px; }
+header.top p.lede { font-size: var(--s3); color: var(--muted); max-width: 62ch; }
+.twin { display: inline-flex; gap: 6px; align-items: center; font: 500 var(--s1)/1 var(--mono); }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.dot.ios { background: var(--ios); } .dot.android { background: var(--android); } .dot.gate { background: var(--gate); }
+
+/* role picker */
+.roles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 860px) { .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 460px) { .roles { grid-template-columns: 1fr; } }
+.role-card { text-align: left; font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; cursor: pointer; display: grid; gap: 8px; align-content: start; }
+.role-card strong { font-family: var(--display); font-size: var(--s3); }
+.role-card span { color: var(--muted); font-size: var(--s1); line-height: 1.5; }
+.role-card[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.role-card .when { font: 500 11px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--gate); }
+
+/* gate callout */
+.gate-callout { border: 1px solid var(--gate-line); background: var(--gate-soft); border-radius: 10px; padding: 18px 20px; display: grid; gap: 8px; }
+.gate-callout h3 { color: var(--gate); }
+
+/* phase map */
+.phases { overflow-x: auto; }
+.phase-row { display: grid; grid-template-columns: repeat(7, minmax(128px, 1fr)); gap: 0; min-width: 900px; }
+.phase { position: relative; padding: 14px 14px 16px; border-top: 3px solid var(--line); display: grid; gap: 6px; align-content: start; }
+.phase .n { font: 500 12px/1 var(--mono); color: var(--muted); }
+.phase h3 { font-size: var(--s2); }
+.phase p { font-size: var(--s1); color: var(--muted); }
+.phase .g { font: 500 11px/1.4 var(--mono); color: var(--gate); }
+.phase.analysis { border-top-color: var(--gate); background: var(--gate-soft); border-radius: 0 0 8px 8px; }
+.phase.analysis .n { color: var(--gate); }
+
+/* build loop: spine splits into lanes */
+.loop { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1.3fr); gap: 10px; align-items: stretch; }
+@media (max-width: 820px) { .loop { grid-template-columns: 1fr; } }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.step h3 { font-size: var(--s2); }
+.step p { font-size: var(--s1); color: var(--muted); }
+.step .who { font: 500 11px/1.3 var(--mono); color: var(--muted); }
+.lanes { display: grid; gap: 10px; min-width: 0; }
+.lane { border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; }
+.lane.ios { background: var(--ios-soft); border-left: 4px solid var(--ios); }
+.lane.android { background: var(--android-soft); border-left: 4px solid var(--android); }
+.lane b { font-family: var(--display); }
+.lane p { font-size: var(--s1); color: var(--muted); }
+.step.gate { border-color: var(--gate-line); background: var(--gate-soft); }
+
+/* role views */
+.view { display: grid; gap: 28px; }
+.view > header { display: grid; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+.view .job { font-size: var(--s3); max-width: 64ch; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+@media (max-width: 820px) { .cols { grid-template-columns: 1fr; } }
+.block { display: grid; gap: 12px; align-content: start; min-width: 0; }
+ol.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: s; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; }
+ol.steps li::before { content: counter(s); font: 600 var(--s1)/28px var(--mono); width: 28px; height: 28px; text-align: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: var(--surface); }
+ol.steps li div { display: grid; gap: 3px; min-width: 0; }
+ol.steps li strong { font-weight: 600; }
+ol.steps li span { color: var(--muted); font-size: var(--s1); }
+ul.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+ul.checks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; font-size: var(--s2); }
+ul.checks li::before { content: ""; width: 14px; height: 14px; margin-top: 5px; border: 1.5px solid var(--gate); border-radius: 3px; }
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: var(--s1); }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 12px/1.3 var(--body); color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; background: var(--paper); }
+tr:last-child td { border-bottom: 0; }
+td.ios { color: var(--ios); } td.android { color: var(--android); }
+.cmd { position: relative; background: var(--code-bg); border-radius: 8px; padding: 12px 14px; padding-right: 76px; overflow-x: auto; }
+.cmd pre { margin: 0; font: 400 13px/1.7 var(--mono); white-space: pre; }
+.cmd .c { color: var(--muted); }
+.copy { position: absolute; top: 8px; right: 8px; font: 500 12px/1 var(--body); padding: 7px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.pill { display: inline-block; font: 500 11px/1 var(--mono); padding: 4px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.pill.gate { border-color: var(--gate-line); color: var(--gate); }
+.risk { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 12px 14px; border-left: 3px solid var(--gate); background: var(--surface); border-radius: 0 8px 8px 0; }
+.risk b { font-weight: 600; }
+.risk span { color: var(--muted); font-size: var(--s1); }
+.risks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 720px) { .risks { grid-template-columns: 1fr; } }
+.showing { font-size: var(--s1); color: var(--muted); }
+footer { border-top: 1px solid var(--line); padding-top: 22px; display: grid; gap: 14px; }
+@media (prefers-reduced-motion: no-preference) { .view:not([hidden]) { animation: rise .25s ease-out; } @keyframes rise { from { transform: translateY(4px); } to { transform: none; } } }
+</style>
+
+<div class="rolebar" role="navigation" aria-label="Choose your role">
+  <div class="rolebar-inner">
+    <span class="label">Viewing as</span>
+    <button class="chip" data-role="analysts" aria-pressed="true">Analysts</button>
+    <button class="chip" data-role="engineers" aria-pressed="false">Engineers</button>
+    <button class="chip" data-role="stakeholders" aria-pressed="false">Stakeholders</button>
+    <button class="chip" data-role="qa" aria-pressed="false">QA</button>
+    <span class="kit-tag">kit v0.7.1</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Native kit · React Native / Expo → native, or a new app</span>
+    <h1>Hybrid to Native</h1>
+    <p class="lede">A workspace and process for building one app as two native apps, where AI agents build every feature on both platforms at the same time from one spec. Start from an existing React Native or Expo app, or from the product docs and designs of a new one.</p>
+    <div class="twin"><span class="dot ios"></span> iOS · Swift 6 + SwiftUI &nbsp;&nbsp; <span class="dot android"></span> Android · Kotlin + Compose &nbsp;&nbsp; <span class="dot gate"></span> gate</div>
+  </header>
+
+  <section aria-labelledby="who">
+    <h2 id="who">Who's reading?</h2>
+    <p class="muted">Pick your role. The page opens with the view for that role, and you can switch at any time from the bar at the top.</p>
+    <div class="roles">
+      <button class="role-card" data-role="analysts" aria-pressed="true"><span class="when">Starts the process</span><strong>Analysts</strong><span>Tech leads who read the hybrid app (or, for a new app, the product docs and designs), map features and risks, and hand a reviewed analysis to the team.</span></button>
+      <button class="role-card" data-role="engineers" aria-pressed="false"><span class="when">After the analysis gate</span><strong>Engineers</strong><span>iOS and Android developers who run the agents and own the pull requests, one approved spec at a time.</span></button>
+      <button class="role-card" data-role="stakeholders" aria-pressed="false"><span class="when">Decides at each gate</span><strong>Stakeholders</strong><span>Product owners and management who approve scope, specs and releases, and watch risk and progress.</span></button>
+      <button class="role-card" data-role="qa" aria-pressed="false"><span class="when">From discovery to release</span><strong>QA</strong><span>Owns the shared end-to-end flows, the upgrade or first-install tests, the parity checks and release sign-off.</span></button>
+    </div>
+  </section>
+
+  <aside class="gate-callout" aria-labelledby="gate-h">
+    <h3 id="gate-h">Analysis comes first</h3>
+    <p>Nothing reaches the development team until the <b>analysis handoff</b> is accepted. That means a feature catalog covering every screen, the list of data the app stores on the device and how it will be migrated, the native replacement for every risky library, and ranked risks with owners. Specs are written from that evidence, and only approved specs get built.</p>
+    <p>For a new app the gate is the <b>product handoff</b>: every journey mapped to features with cited sources, the backend and design decisions made, a tracking plan, quality targets, and the store identity fixed.</p>
+  </aside>
+
+  <section aria-labelledby="modes-h">
+    <div><span class="eyebrow">Two ways in</span><h2 id="modes-h">Migrate a hybrid app, or start a new one</h2></div>
+    <p class="muted">Same loop, same gates, same native templates. What changes is where the evidence comes from and how the app reaches users.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Topic</th><th>Migration</th><th>New app</th></tr></thead>
+      <tbody>
+        <tr><td>Evidence for specs</td><td>The React Native code, cited by file and line</td><td>PRD and briefs, Figma frames, confirmed workshop decisions, cited by source ID</td></tr>
+        <tr><td>Phase 1</td><td><code>/rn-analyze</code> → analysis handoff</td><td><code>/define-product</code> → product handoff</td></tr>
+        <tr><td>Contracts</td><td>Strings and events copied verbatim from the hybrid app</td><td>Written from scratch: API per the backend ADR, copy, tracking plan, tokens from Figma</td></tr>
+        <tr><td>Parity</td><td>Native vs the hybrid golden reference, and iOS vs Android</td><td>iOS vs Android, both against the spec and designs</td></tr>
+        <tr><td>Device data</td><td>Migrated, tested with an upgrade test</td><td>None to migrate</td></tr>
+        <tr><td>Release</td><td>An update to the same store listings</td><td>New listings; the bundle ID is permanent from the first upload</td></tr>
+      </tbody>
+    </table></div>
+    <div class="cols">
+      <div class="cmd"><button class="copy" type="button">Copy</button><pre><span class="c"># migration: clone the RN app into hybrid/</span>
+tools/init-workspace.sh ~/Projects/shop-native --hybrid &lt;git-url&gt;</pre></div>
+      <div class="cmd"><button class="copy" type="button">Copy</button><pre><span class="c"># new app: sources go in analysis/sources/</span>
+tools/init-workspace.sh ~/Projects/shop-native --new</pre></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="phases-h">
+    <div><span class="eyebrow">The plan</span><h2 id="phases-h">Seven phases, each ending in a gate</h2></div>
+    <div class="phases" role="region" aria-label="Phases" tabindex="0">
+      <div class="phase-row">
+        <div class="phase"><span class="n">0</span><h3>Setup</h3><p>Workspace, repos, ADRs, credentials, baseline metrics. Hybrid frozen to critical fixes.</p><span class="g">Gate: decisions recorded</span></div>
+        <div class="phase analysis"><span class="n">1 · analysis</span><h3>Discovery</h3><p>Inventory, feature catalog, data at rest, risks, golden flows. New app: product definition from docs, designs and workshops.</p><span class="g">Gate: analysis / product handoff</span></div>
+        <div class="phase"><span class="n">2</span><h3>Foundations</h3><p>Both apps scaffolded from the kit templates, then contracts, CI and the first slice on both.</p><span class="g">Gate: smoke flow green on both</span></div>
+        <div class="phase"><span class="n">3</span><h3>Feature waves</h3><p>Spec → contract → iOS ∥ Android → reviews → both PRs merge together.</p><span class="g">Gate: every feature verified</span></div>
+        <div class="phase"><span class="n">4</span><h3>Hardening</h3><p>Upgrade test (or first-install tests for a new app), performance, accessibility, localisation, security.</p><span class="g">Gate: users keep their data</span></div>
+        <div class="phase"><span class="n">5</span><h3>Cut-over / launch</h3><p>Beta, then phased release and staged rollout. A new app launches on new listings.</p><span class="g">Gate: kill criteria agreed</span></div>
+        <div class="phase"><span class="n">6</span><h3>Steady state</h3><p>Both apps evolve through the same spec-first loop, updated on one schedule.</p><span class="g">Ongoing: parity signals</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="loop-h">
+    <div><span class="eyebrow">The loop, for every feature</span><h2 id="loop-h">One spec, one contract, two platforms</h2></div>
+    <div class="loop">
+      <div class="step gate"><span class="who">human approves</span><h3>Spec</h3><p>What the feature does, in neutral words, with numbered acceptance criteria. Approval records a content hash, so later edits are caught.</p></div>
+      <div class="step"><span class="who">orchestrator</span><h3>Contract</h3><p>The names both apps share: state, actions, effects, test IDs, strings, analytics events.</p></div>
+      <div class="lanes">
+        <div class="lane ios"><b>ios-engineer</b><p>SwiftUI in <code>ios/</code>, tests tagged with AC IDs, loads the SwiftUI skill.</p></div>
+        <div class="lane android"><b>android-engineer</b><p>Compose in <code>android/</code>, at the same time, from the same contract.</p></div>
+      </div>
+      <div class="step gate"><span class="who">3 reviewers in parallel, then humans</span><h3>Review and merge</h3><p>Parity review plus an iOS and an Android quality review. Humans merge both PRs together, or neither.</p></div>
+    </div>
+  </section>
+
+  <!-- ANALYSTS -->
+  <section class="view" id="analysts" data-view="analysts" aria-labelledby="v-analysts">
+    <header>
+      <span class="eyebrow">Your view · Analysts</span>
+      <h2 id="v-analysts">Turn the hybrid app into evidence</h2>
+      <p class="job">You read the React Native code (never change it), map what exists, and hand the team a reviewed analysis. Every claim cites a file and line. Anything that looks like a bug goes to open questions instead of being copied.</p>
+      <p class="showing" id="default-note">Shown by default because analysis comes first. Pick another role above to switch.</p>
+    </header>
+    <div class="cols">
+      <div class="block">
+        <h3>Steps</h3>
+        <ol class="steps">
+          <li><div><strong>Start with <code>/kickoff</code></strong><span>In a new session opened at the app's workspace. It checks the setup, asks which folder is the React Native app when the repo also holds a backend or web app, and fills <code>PROJECT.md</code> with you.</span></div></li>
+          <li><div><strong>Pin what users actually run</strong><span>The production commit, plus the latest OTA update if expo-updates is used. Record the SHA.</span></div></li>
+          <li><div><strong>Scan the app</strong><span><code>rn-inventory</code> maps routes, dependencies, stored data, API calls, analytics, test IDs, native modules and risks.</span></div></li>
+          <li><div><strong>Run <code>/rn-analyze</code></strong><span>Writes the analysis pack: architecture, feature catalog, integrations, data at rest, native code, risks.</span></div></li>
+          <li><div><strong>Run <code>/plan-data-migration</code></strong><span>How the native apps read what the hybrid app left on the device, so nobody is logged out.</span></div></li>
+          <li><div><strong>Record the golden reference</strong><span>Maestro flows and screenshots of the hybrid app. The same flows later run on both native apps.</span></div></li>
+          <li><div><strong>Propose waves and draft specs</strong><span><code>/spec-feature</code> for each wave-1 feature, with open questions for the product owner.</span></div></li>
+        </ol>
+      </div>
+      <div class="block">
+        <h3>Analysis handoff checklist</h3>
+        <ul class="checks">
+          <li>Every route and screen maps to one feature ID (or is marked out of scope)</li>
+          <li>Every value stored on the device has a decision: migrate, keep or drop</li>
+          <li>Every high-risk library has a native replacement or an open question</li>
+          <li>Risks ranked by impact and likelihood, each with an owner</li>
+          <li>Golden flows recorded for every critical journey</li>
+          <li>Orientation locks and iPad support noted for the Form factors sections</li>
+          <li>Product owner has reviewed the feature catalog and waves</li>
+        </ul>
+        <h3>Commands</h3>
+        <div class="cmd"><button class="copy" type="button">Copy</button><pre><span class="c"># from the workspace root</span>
+node tools/rn-inventory.mjs --out analysis/inventory
+node tools/spec.mjs new AUTH-LOGIN "Log in with email and password"
+node tools/spec.mjs list</pre></div>
+      </div>
+    </div>
+    <div class="block">
+      <h3>What you hand over</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>File</th><th>Answers</th></tr></thead>
+        <tbody>
+          <tr><td><code>analysis/feature-catalog.md</code></td><td>What gets rebuilt, in which wave, in what order</td></tr>
+          <tr><td><code>analysis/data-at-rest.md</code> + <code>data-migration.md</code></td><td>What must survive the upgrade and how it's read</td></tr>
+          <tr><td><code>analysis/integrations.md</code></td><td>Every SDK and service, and its native replacement</td></tr>
+          <tr><td><code>analysis/native-code.md</code></td><td>Custom native modules, config plugins and patches, and how each is handled</td></tr>
+          <tr><td><code>analysis/risks.md</code></td><td>What could go wrong, ranked, with owners</td></tr>
+          <tr><td><code>specs/features/&lt;ID&gt;/spec.md</code></td><td>Draft specs for wave 1, ready for approval</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="block">
+      <h3>New app: product definition instead of discovery</h3>
+      <ol class="steps">
+        <li><div><strong>Index the sources</strong><span>Every PRD, brief, design file and piece of research gets a stable ID in <code>analysis/sources/README.md</code>. Specs cite those IDs.</span></div></li>
+        <li><div><strong>Draft the brief</strong><span>Problem, users, journeys, first-release scope and quality targets, each with a citation. Gaps become open questions, never invented requirements.</span></div></li>
+        <li><div><strong>Run workshops with Claude</strong><span><code>/define-product workshop &lt;topic&gt;</code>: four questions at a time, decisions numbered, agent proposals marked as proposals. Notes count only once the product owner confirms them.</span></div></li>
+        <li><div><strong>Catalog, waves and decisions</strong><span>Feature catalog with sources, design and API readiness; backend approach (existing API, contract-first with a mock, or BaaS) and design source as ADRs; tracking plan; store identity.</span></div></li>
+        <li><div><strong>Product handoff</strong><span><code>analysis/HANDOFF.md</code>, accepted by the product owner and both platform leads before any spec is built.</span></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ENGINEERS -->
+  <section class="view" id="engineers" data-view="engineers" aria-labelledby="v-engineers" hidden>
+    <header>
+      <span class="eyebrow">Your view · Engineers</span>
+      <h2 id="v-engineers">Build approved specs on both platforms at once</h2>
+      <p class="job">You start from an approved spec, not from the hybrid code. The orchestrator writes the contract, the two platform agents build in parallel, and three reviewers check the result before you review and merge both PRs.</p>
+    </header>
+    <div class="cols">
+      <div class="block">
+        <h3>For each slice (the default)</h3>
+        <ol class="steps">
+          <li><div><strong>Once, at the start of Phase 2: <code>/scaffold-native</code></strong><span>Generates both projects from the kit templates (XcodeGen with a local Swift package; Gradle with convention plugins, Hilt, Navigation 3), with a sample feature, layout-matrix tests and CI, then builds and runs both.</span></div></li>
+          <li><div><strong>Pick a slice that ends in something tappable</strong><span>The first one is always launch → login → main screen. Features in dependency order, in <code>specs/slices/</code>.</span></div></li>
+          <li><div><strong>Run <code>/implement-slice &lt;SLICE-ID&gt;</code></strong><span>Contracts for the whole slice in one batch and one approval, then one iOS and one Android session build it feature by feature.</span></div></li>
+          <li><div><strong>Tap it early</strong><span>The app runs on simulator and emulator as soon as it builds, before any review. Contract problems are logged and resolved once for both platforms.</span></div></li>
+          <li><div><strong>One review pass</strong><span>Parity plus iOS and Android quality reviews for the whole slice. Wording-only spec fixes are acknowledged in one command.</span></div></li>
+          <li><div><strong>Merge both PRs together</strong><span>Titled <code>[SLICE-01] &lt;demo goal&gt;</code>, each linking the other. Risky features (data migration, payments, auth) use <code>/implement-feature</code> instead.</span></div></li>
+        </ol>
+      </div>
+      <div class="block">
+        <h3>Done means</h3>
+        <ul class="checks">
+          <li>Build, lint and tests green on both platforms</li>
+          <li>Every acceptance criterion has a test on both platforms, carrying its AC ID</li>
+          <li>Every screen renders correctly at any size and orientation, and the layout-matrix snapshots exist</li>
+          <li>Shared names match the contract exactly</li>
+          <li>Parity review PASS; quality reviews without blockers</li>
+          <li>Both PRs merged together; spec status set to <code>implemented</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="block">
+      <h3>The same shape on both platforms</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Concept</th><th>iOS</th><th>Android</th></tr></thead>
+        <tbody>
+          <tr><td>Screen</td><td class="ios"><code>LoginScreen</code> + pure <code>LoginContent</code></td><td class="android"><code>LoginScreen</code> + stateless <code>LoginContent</code></td></tr>
+          <tr><td>State holder</td><td class="ios"><code>@Observable LoginViewModel</code></td><td class="android"><code>LoginViewModel : ViewModel</code></td></tr>
+          <tr><td>State · actions · effects</td><td class="ios"><code>LoginUiState</code> · <code>LoginAction</code> · <code>EffectChannel</code></td><td class="android"><code>LoginUiState</code> · <code>LoginAction</code> · <code>Channel</code></td></tr>
+          <tr><td>Test ID</td><td class="ios"><code>.accessibilityIdentifier("login.emailField")</code></td><td class="android"><code>Modifier.testTag("login.emailField")</code></td></tr>
+          <tr><td>Strings</td><td class="ios"><code>L10n.authLoginTitle</code> (generated)</td><td class="android"><code>R.string.auth_login_title</code> (generated)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="cols">
+      <div class="block">
+        <h3>Platform skills</h3>
+        <p class="muted">26 third-party skills, pinned to exact commits. The iOS agents load the SwiftUI skill. The Android reviewer loads Compose performance and security skills. When a skill disagrees with the kit, the spec, contract and guidelines win, and guideline 14 lists every known conflict.</p>
+        <p class="muted">The skills are committed with the workspace: nothing to download after cloning, and nothing changes on checkout. Updates are reviewed bumps. On Windows, turn on Developer Mode and clone with <code>git clone -c core.symlinks=true …</code>, so other agent tools find them in <code>.agents/skills</code> (guideline 14 has the fix for an existing clone).</p>
+      </div>
+      <div class="block">
+        <h3>Conventions</h3>
+        <ul class="plain">
+          <li>Feature <code>AUTH-LOGIN</code>, criterion <code>AUTH-LOGIN-AC03</code>, never renumbered</li>
+          <li>Branch <code>feature/AUTH-LOGIN</code> in both repos</li>
+          <li>Commits <code>[AUTH-LOGIN] Add login view model</code></li>
+          <li>Never hand-edit generated code; change <code>contracts/</code> and regenerate</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cmd"><button class="copy" type="button">Copy</button><pre><span class="c"># start Claude Code at the workspace root, then:</span>
+/scaffold-native
+/implement-slice SLICE-01
+node tools/parity-report.mjs --feature AUTH-LOGIN
+node tools/contracts-sync.mjs --check</pre></div>
+  </section>
+
+  <!-- STAKEHOLDERS -->
+  <section class="view" id="stakeholders" data-view="stakeholders" aria-labelledby="v-stakeholders" hidden>
+    <header>
+      <span class="eyebrow">Your view · Stakeholders</span>
+      <h2 id="v-stakeholders">Decide at the gates, watch the risks</h2>
+      <p class="job">The native apps replace the hybrid app as an update to the same store listings. Users keep the app and their data. They should only notice that it's faster. Your decisions shape what gets rebuilt, in what order, and when it ships. For a new app, you also decide the first release&rsquo;s scope, the backend approach, the design source and the store identity.</p>
+    </header>
+    <div class="cols">
+      <div class="block">
+        <h3>What you decide</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>When</th><th>Decision</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pill gate">Phase 1 gate</span></td><td>Accept the analysis: feature catalog, waves, scope cuts</td></tr>
+            <tr><td><span class="pill">Every feature</span></td><td>Approve its spec; decide whether odd hybrid behaviour is kept or fixed</td></tr>
+            <tr><td><span class="pill">Phase 0 / ongoing</span></td><td>Architecture decisions that change scope, such as minimum OS or phone orientation</td></tr>
+            <tr><td><span class="pill">New app, Phase 0–1</span></td><td>Backend approach, design source, bundle ID and stores, confirmed workshop decisions</td></tr>
+            <tr><td><span class="pill gate">Phase 5 gate</span></td><td>Release date, rollout pace, kill criteria</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="block">
+        <h3>How progress is measured</h3>
+        <ul class="plain">
+          <li>Features verified out of total, per wave</li>
+          <li>Acceptance-criteria coverage on each platform</li>
+          <li>Platform lag: days between the two platforms merging a feature (target: zero)</li>
+          <li>Crash-free sessions, cold start and funnel conversion against the hybrid baseline</li>
+        </ul>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Main risks and how the process handles them</h3>
+      <div class="risks">
+        <div class="risk"><b>Users logged out or losing data after the update</b><span>Every stored value is inventoried in discovery; a migrator reads the hybrid formats; tested on two upgrade tracks before release.</span></div>
+        <div class="risk"><b>The two apps drift apart</b><span>One spec and contract per feature, tests tagged per criterion, a parity review, and both PRs merged together.</span></div>
+        <div class="risk"><b>Analytics dashboards break at cut-over</b><span>Event names are copied verbatim from the hybrid app and compared between apps on the same flows.</span></div>
+        <div class="risk"><b>Over-the-air updates stop</b><span>The last hybrid OTA is frozen before cut-over; remote kill switches are in place before launch.</span></div>
+        <div class="risk"><b>Foldables and large screens</b><span>iPhone Duo and Android 16 ignore orientation locks, so every screen must render at any size and orientation.</span></div>
+        <div class="risk"><b>The hybrid app keeps changing</b><span>It's frozen to critical fixes during the rewrite, and each change is mirrored into its spec.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QA -->
+  <section class="view" id="qa" data-view="qa" aria-labelledby="v-qa" hidden>
+    <header>
+      <span class="eyebrow">Your view · QA</span>
+      <h2 id="v-qa">Prove parity with checks, not opinions</h2>
+      <p class="job">One Maestro suite runs unchanged against the hybrid app, the iOS app and the Android app. You record it against the hybrid app first, then it becomes the gate for both native apps. For a new app, the flows are written from the specs&rsquo; e2e criteria and run on both native apps, and the analytics diff compares iOS with Android.</p>
+    </header>
+    <div class="cols">
+      <div class="block">
+        <h3>Four parity checks</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Check</th><th>Proves</th></tr></thead>
+          <tbody>
+            <tr><td>AC traceability</td><td>Every criterion has a test on iOS, on Android, and in a shared flow when marked e2e</td></tr>
+            <tr><td>Shared e2e flows</td><td>The same journey works on all three apps (selected by test ID only)</td></tr>
+            <tr><td>Analytics diff</td><td>The same journey sends the same events with the same properties</td></tr>
+            <tr><td>Visual comparison</td><td>Each state looks right on both platforms; native idioms may differ</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="block">
+        <h3>Layout matrix, every screen</h3>
+        <ul class="checks">
+          <li>Compact portrait</li>
+          <li>Compact landscape</li>
+          <li>Expanded (iPad, iPhone Duo inner display, foldable or tablet)</li>
+          <li>iPad, if the hybrid app supports it today</li>
+        </ul>
+        <p class="muted">P0 journeys also run on one large device per platform.</p>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="block">
+        <h3>Upgrade test, two tracks</h3>
+        <ol class="steps">
+          <li><div><strong>Local, on every build</strong><span>Rebuild the production hybrid commit, create data, install the native build over it, check that everything is still there.</span></div></li>
+          <li><div><strong>Real path, before each beta</strong><span>The store hybrid version, then update through TestFlight and Play internal testing on real devices.</span></div></li>
+        </ol>
+      </div>
+      <div class="block">
+        <h3>Release</h3>
+        <p class="muted">Phased release on the App Store, staged rollout on Play, same day. Kill criteria are written in advance. Pausing an iOS phased release only stops automatic updates, so remote kill switches are the real brake there.</p>
+      </div>
+    </div>
+    <div class="cmd"><button class="copy" type="button">Copy</button><pre><span class="c"># pass the e2e folder, so config.yaml picks up flows/**</span>
+maestro test -e APP_ID=com.example.app --format junit --output e2e/results/ios.xml e2e
+node tools/analytics-diff.mjs e2e/analytics/login.expected.jsonl ios-run.log --ignore ts
+node tools/parity-report.mjs --e2e-results e2e/results --strict</pre></div>
+  </section>
+
+  <footer>
+    <h3>Where everything lives</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Start with</th><th>For</th></tr></thead>
+      <tbody>
+        <tr><td><code>README.md</code> · <code>AGENTS.md</code> · <code>PROJECT.md</code></td><td>The kit, the rules every agent follows, and this app's facts</td></tr>
+        <tr><td><code>guidelines/01</code> to <code>15</code></td><td>Plan, reading RN code, specs, parallel workflow, architecture, platforms, contracts, testing, cut-over, maintenance, skills, new apps</td></tr>
+        <tr><td><code>templates/native/</code></td><td>The iOS and Android project templates that <code>/scaffold-native</code> generates</td></tr>
+        <tr><td><code>HOW_TO_UPDATE.md</code></td><td>Updating every third-party dependency and skill, and proposing a skill's removal</td></tr>
+        <tr><td><code>decisions/</code></td><td>Architecture decisions, the divergence register, skill evaluations</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted">Each app gets its own workspace, created with <code>tools/init-workspace.sh</code> (<code>--hybrid &lt;url&gt;</code> for a migration, <code>--new</code> for a new app). Open the workspace in a new session and type <code>/kickoff</code>. It asks your role and, for analysts, runs discovery or product definition up to the handoff (<code>analysis/HANDOFF.md</code>). The analysis step can also publish a brief for that app in the same format as this page. Problems with the kit itself go in <code>kit-feedback.md</code>.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var ROLES = ['analysts', 'engineers', 'stakeholders', 'qa'];
+  var KEY = 'h2n-role';
+  function read() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  function save(v) { try { localStorage.setItem(KEY, v); } catch (e) { /* storage unavailable */ } }
+  function show(role, fromUser) {
+    if (ROLES.indexOf(role) < 0) role = 'analysts';
+    document.querySelectorAll('[data-view]').forEach(function (v) { v.hidden = v.getAttribute('data-view') !== role; });
+    document.querySelectorAll('[data-role]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-role') === role)); });
+    var note = document.getElementById('default-note');
+    if (note && fromUser) note.hidden = true;
+    if (fromUser) { save(role); try { history.replaceState(null, '', '#' + role); } catch (e) { /* ignore */ } }
+  }
+  document.querySelectorAll('[data-role]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      show(b.getAttribute('data-role'), true);
+      if (b.classList.contains('role-card')) document.getElementById(b.getAttribute('data-role')).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+  var hash = (location.hash || '').replace('#', '');
+  var initial = ROLES.indexOf(hash) >= 0 ? hash : read();
+  show(initial || 'analysts', false);
+  if (initial) { var n = document.getElementById('default-note'); if (n) n.hidden = true; }
+
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.parentElement.querySelector('pre');
+      var text = pre.innerText;
+      function selectIt() { var r = document.createRange(); r.selectNodeContents(pre); var s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Selected'; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1600); }, selectIt);
+      } else selectIt();
+    });
+  });
+})();
+</script>

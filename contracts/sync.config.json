@@ -1,0 +1,30 @@
+{
+  "strings": { "sourceDir": "contracts/strings", "baseLocale": "en" },
+  "analytics": { "source": "contracts/analytics/events.json" },
+  "ios": {
+    "root": "ios",
+    "copy": [
+      { "from": "contracts/openapi/api.yaml", "to": "Modules/Sources/CoreNetwork/openapi.yaml" },
+      { "from": "contracts/fixtures", "to": "Modules/Tests/CoreNetworkTests/Fixtures" }
+    ],
+    "strings": {
+      "to": "Modules/Sources/DesignSystem/Resources/Localizable.xcstrings",
+      "accessors": "Modules/Sources/DesignSystem/Generated/L10n.swift",
+      "bundle": "Bundle.module",
+      "infoPlist": { "to": "App/Resources/InfoPlist.xcstrings", "keys": { "app.name": "CFBundleDisplayName" } }
+    },
+    "analytics": { "to": "Modules/Sources/CoreAnalytics/Generated/AnalyticsEvent.swift" }
+  },
+  "android": {
+    "root": "android",
+    "copy": [
+      { "from": "contracts/openapi/api.yaml", "to": "core/network/openapi/api.yaml" },
+      { "from": "contracts/fixtures", "to": "core/network/src/test/resources/fixtures" }
+    ],
+    "strings": { "resDir": "core/designsystem/src/main/res", "fileName": "strings.xml" },
+    "analytics": {
+      "to": "core/analytics/src/main/kotlin/com/example/app/core/analytics/generated/AnalyticsEvent.kt",
+      "package": "com.example.app.core.analytics.generated"
+    }
+  }
+}

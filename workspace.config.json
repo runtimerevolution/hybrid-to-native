@@ -1,0 +1,10 @@
+{
+  "mode": "migration",
+  "hybrid": {
+    "repo": "hybrid",
+    "app": "hybrid",
+    "sharedPackages": [],
+    "backend": [],
+    "web": []
+  }
+}

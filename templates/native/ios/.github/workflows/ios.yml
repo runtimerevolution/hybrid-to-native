@@ -1,0 +1,19 @@
+name: iOS
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  build-and-test:
+    # Needs Xcode 26+ (swift-tools 6.2). Keep the image and simulator in step with the team's Xcode (HOW_TO_UPDATE.md §7).
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+      - name: Lint
+        run: swift format lint --recursive --strict App Modules/Sources Modules/Tests Modules/Package.swift
+      - name: Build and test (the simulator must be the one the snapshots were recorded on)
+        run: |
+          xcodebuild test -quiet -project {{APP_IDENT}}.xcodeproj -scheme {{APP_IDENT}} \
+            -destination 'platform=iOS Simulator,name={{SIMULATOR}}'
