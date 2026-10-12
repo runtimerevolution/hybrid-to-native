@@ -1,5 +1,9 @@
 # Hybrid → Native migration kit (and new native apps)
 
+> [!IMPORTANT]
+> ⚠️ **Keep this repository public**
+> This repository serves as a reference for the accompanying blog post. Keeping it public ensures that readers can access the code.
+
 A workspace template for building one app as two native apps, **iOS (SwiftUI)** and **Android (Jetpack Compose)**,
 where AI agents build every feature on both platforms at the same time from one spec. Two modes:
 - **migration**: rewrite an existing **React Native / Expo** app (the evidence is its code);

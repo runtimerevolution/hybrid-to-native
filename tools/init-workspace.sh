@@ -38,7 +38,7 @@ rsync -a \
   --exclude '.git/' --exclude '/hybrid/' --exclude '/ios/' --exclude '/android/' \
   --exclude '/analysis/inventory/' --exclude '/specs/features/*/' --exclude '/parity/STATUS.md' --exclude '/parity/status.json' --exclude '/parity/DEPENDENCIES.md' \
   --exclude '.DS_Store' --exclude '/.skills-cache/' --exclude '/.kit-manifest.json' --exclude '/.kit-version' \
-  --exclude '/kit-feedback.md' --exclude '/kit-feedback-patches/' \
+  --exclude '/kit-feedback.md' --exclude '/kit-feedback-patches/' --exclude '/blog/' \
   "$KIT/" "$TARGET/"
 
 cd "$TARGET"
